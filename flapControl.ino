@@ -38,6 +38,7 @@ const int pos_threshold = 3;  // thrshold in °
 
 // additional variables
 int button_state_dig = 0;     // variable for reading the pushbutton status
+bool button_state_old = false;// no pressed button
 
 Servo my_servo;               // create servo object to control a servo
                               // twelve servo objects can be created on most boards
@@ -55,6 +56,8 @@ void setup()
 
   // attaches the servo on defined pin to the servo object
   my_servo.attach(pin_servo);
+
+  my_servo.write(pos_start);
 }
 
 
@@ -63,8 +66,8 @@ void loop()
   // read the state of the pushbutton value:
   button_state_dig = digitalRead(pin_button_dig);
 
-  // check if the pushbutton is pressed. If it is, the button_state_dig is HIGH:
-  if (button_state_dig == HIGH)
+  // check if the pushbutton is pressed. Trigger by closing button
+  if (button_state_dig == HIGH && !button_state_old)
   {
     // turn LED on:
     digitalWrite(pin_led, HIGH);
@@ -75,20 +78,16 @@ void loop()
       // rotate servo to end position
       my_servo.write(pos_end);
     }
-  }
-  else
-  {
-    // turn LED off:
-    digitalWrite(pin_led, LOW);
-
-    // check if servo is already in position
-    if(abs(pos_start - my_servo.read()) > pos_threshold)
+    else
     {
-      // rotate servo to end position
+      // rotate servo to start position
       my_servo.write(pos_start);
     }
   }
 
+  // remember current state for next cycle
+  button_state_old = bool(button_state_dig);
+  
   Serial.print("Current position of servo: ");
   Serial.println(my_servo.read());
 }
